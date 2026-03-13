@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AcessoBot</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#07080f;--s1:#0e1020;--s2:#141728;--s3:#1a1f36;
+  --b1:#242840;--b2:#2e3452;
+  --p:#7c6dfa;--p2:#6557e8;--p3:rgba(124,109,250,.12);
+  --g:#22d47a;--g2:rgba(34,212,122,.12);
+  --r:#f05c6e;--r2:rgba(240,92,110,.12);
+  --y:#f5a623;--y2:rgba(245,166,35,.12);
+  --c:#38bdf8;--c2:rgba(56,189,248,.12);
+  --t1:#f0f2ff;--t2:#a8b2d8;--t3:#606880;
+  --ra:10px;--ra2:14px;--ra3:18px;
+  --sh:0 4px 24px rgba(0,0,0,.4);
+}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-size:14px;}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,rgba(124,109,250,.15) 0%,transparent 70%);}
+.login-wrap{width:100%;max-width:400px;padding:20px;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .icon{width:52px;height:52px;background:linear-gradient(135deg,var(--p),#a78bfa);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.login-logo h1{font-size:22px;font-weight:700;letter-spacing:-.3px;}
+.login-logo p{color:var(--t3);font-size:13px;margin-top:4px;}
+.login-box{background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra3);padding:32px;}
+.login-box h2{font-size:16px;font-weight:600;margin-bottom:20px;}
+.inp-err{color:var(--r);font-size:12px;margin-top:10px;display:none;}
+
+/* ── LAYOUT ── */
+#app{display:none;}
+.layout{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:20;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b1);}
+.sidebar-logo .dot{width:32px;height:32px;background:linear-gradient(135deg,var(--p),#a78bfa);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sidebar-logo span{font-size:15px;font-weight:700;letter-spacing:-.2px;}
+.sidebar-logo small{font-size:10px;color:var(--t3);display:block;}
+.nav-section{padding:14px 10px 4px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;margin:1px 8px;border-radius:var(--ra);cursor:pointer;font-size:13px;color:var(--t2);transition:all .15s;border:none;background:none;width:calc(100% - 16px);text-align:left;}
+.nav-item:hover{background:var(--s3);color:var(--t1);}
+.nav-item.active{background:var(--p3);color:var(--p);}
+.nav-item svg{flex-shrink:0;opacity:.7;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{margin-top:auto;padding:12px 8px;border-top:1px solid var(--b1);}
+.btn-logout{width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--ra);background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;transition:all .15s;}
+.btn-logout:hover{color:var(--r);background:var(--r2);}
+
+/* ── MAIN ── */
+.main{flex:1;margin-left:220px;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;background:var(--s1);position:sticky;top:0;z-index:10;}
+.topbar-title{font-size:15px;font-weight:600;}
+.topbar-sub{font-size:12px;color:var(--t3);margin-top:2px;}
+.page-body{padding:24px 28px;max-width:1280px;}
+
+/* ── PAGES ── */
+.page{display:none;}.page.active{display:block;}
+
+/* ── CARDS / STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:18px 20px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 0 0 60px;opacity:.06;}
+.stat-card.p::before{background:var(--p);}
+.stat-card.g::before{background:var(--g);}
+.stat-card.r::before{background:var(--r);}
+.stat-card.y::before{background:var(--y);}
+.stat-card.c::before{background:var(--c);}
+.stat-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.stat-val{font-size:28px;font-weight:700;line-height:1;}
+.stat-card.p .stat-val{color:var(--p);}
+.stat-card.g .stat-val{color:var(--g);}
+.stat-card.r .stat-val{color:var(--r);}
+.stat-card.y .stat-val{color:var(--y);}
+.stat-card.c .stat-val{color:var(--c);}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--s2);}
+th{padding:10px 16px;text-align:left;font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
+td{padding:12px 16px;font-size:13px;border-top:1px solid var(--b1);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.018);}
+.empty-row td{text-align:center;padding:40px;color:var(--t3);}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;}
+.badge-p{background:var(--p3);color:var(--p);}
+.badge-g{background:var(--g2);color:var(--g);}
+.badge-r{background:var(--r2);color:var(--r);}
+.badge-y{background:var(--y2);color:var(--y);}
+.badge-c{background:var(--c2);color:var(--c);}
+.badge-s3{background:var(--s3);color:var(--t2);}
+.dot-badge{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--ra);font-size:13px;cursor:pointer;border:none;font-weight:500;transition:all .15s;line-height:1.2;}
+.btn-primary{background:var(--p);color:#fff;}.btn-primary:hover{background:var(--p2);}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--b1);}.btn-ghost:hover{border-color:var(--b2);color:var(--t1);}
+.btn-danger{background:transparent;color:var(--r);border:1px solid var(--b1);}.btn-danger:hover{background:var(--r2);border-color:var(--r);}
+.btn-success{background:var(--g);color:#000;}.btn-success:hover{opacity:.88;}
+.btn-warn{background:var(--y);color:#000;}.btn-warn:hover{opacity:.88;}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-icon{padding:6px;width:30px;height:30px;justify-content:center;}
+.actions{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+
+/* ── FORM ── */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;color:var(--t2);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;}
+.field input,.field select,.field textarea{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:9px 12px;color:var(--t1);font-size:13px;outline:none;transition:border .2s;font-family:inherit;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--p);}
+.field select option{background:var(--s2);}
+.field textarea{resize:vertical;min-height:80px;}
+.field small{font-size:11px;color:var(--t3);margin-top:5px;display:block;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra3);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh);}
+.modal-lg{max-width:720px;}
+.modal-xl{max-width:900px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--b1);}
+.modal-header h3{font-size:16px;font-weight:600;}
+.modal-close{background:none;border:none;color:var(--t3);cursor:pointer;padding:4px;border-radius:6px;line-height:1;font-size:20px;display:flex;align-items:center;justify-content:center;}.modal-close:hover{color:var(--t1);background:var(--s3);}
+.modal-body{padding:24px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--b1);}
+
+/* ── BOT CARD ── */
+.bot-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:20px;margin-bottom:12px;transition:border .2s;}
+.bot-card:hover{border-color:var(--b2);}
+.bot-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.bot-info{display:flex;align-items:center;gap:12px;}
+.bot-avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.bot-avatar.pago{background:linear-gradient(135deg,rgba(124,109,250,.3),rgba(167,139,250,.2));border:1px solid rgba(124,109,250,.3);}
+.bot-avatar.free{background:linear-gradient(135deg,rgba(56,189,248,.3),rgba(34,212,122,.2));border:1px solid rgba(56,189,248,.3);}
+.bot-name{font-weight:600;font-size:15px;}
+.bot-meta{font-size:12px;color:var(--t3);margin-top:2px;}
+.bot-stats{display:flex;gap:20px;padding-top:14px;border-top:1px solid var(--b1);}
+.bot-stat{font-size:12px;color:var(--t3);}
+.bot-stat strong{color:var(--t1);font-weight:600;}
+
+/* ── FUNIL BUILDER ── */
+.funil-step{background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra2);margin-bottom:10px;overflow:hidden;}
+.funil-step-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;}
+.funil-step-header:hover{background:var(--s3);}
+.step-num{width:24px;height:24px;border-radius:7px;background:var(--p3);color:var(--p);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.step-preview{font-size:12px;color:var(--t3);margin-left:10px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;}
+.funil-step-body{padding:16px;border-top:1px solid var(--b1);}
+
+/* ── BOTOES BUILDER ── */
+.btn-builder{background:var(--s3);border:1px solid var(--b1);border-radius:var(--ra);padding:12px;}
+.btn-builder-item{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.btn-type-toggle{display:flex;background:var(--s2);border-radius:var(--ra);overflow:hidden;}
+.btn-type-opt{padding:5px 12px;font-size:11px;cursor:pointer;border:none;background:none;color:var(--t3);transition:all .15s;}
+.btn-type-opt.active{background:var(--p);color:#fff;}
+
+/* ── INFO BOX ── */
+.info-box{background:rgba(124,109,250,.07);border:1px solid rgba(124,109,250,.2);border-radius:var(--ra);padding:12px 16px;font-size:12px;color:var(--t2);margin-bottom:16px;line-height:1.6;}
+.warn-box{background:var(--y2);border:1px solid rgba(245,166,35,.3);border-radius:var(--ra);padding:12px 16px;font-size:12px;color:var(--y);margin-bottom:16px;}
+
+/* ── CODE BOX ── */
+.code-box{background:var(--bg);border:1px solid var(--b1);border-radius:var(--ra);padding:12px 16px;font-family:monospace;font-size:12px;color:var(--c);word-break:break-all;position:relative;}
+.copy-btn{position:absolute;top:8px;right:8px;padding:3px 8px;font-size:10px;cursor:pointer;background:var(--s2);border:1px solid var(--b1);border-radius:5px;color:var(--t3);}
+.copy-btn:hover{color:var(--t1);}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--s2);border-radius:var(--ra);padding:3px;margin-bottom:20px;width:fit-content;}
+.tab-btn{padding:7px 16px;border-radius:7px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--t3);transition:all .15s;font-weight:500;}
+.tab-btn.active{background:var(--s1);color:var(--t1);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.tab-content{display:none;}.tab-content.active{display:block;}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-pill{padding:5px 14px;border-radius:99px;font-size:12px;cursor:pointer;border:1px solid var(--b1);background:transparent;color:var(--t3);transition:all .15s;font-weight:500;}
+.filter-pill.active{background:var(--p);color:#fff;border-color:var(--p);}
+.search-input{background:var(--s2);border:1px solid var(--b1);border-radius:99px;padding:6px 14px 6px 32px;color:var(--t1);font-size:12px;outline:none;width:220px;transition:border .2s;}
+.search-input:focus{border-color:var(--p);}
+.search-wrap{position:relative;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;pointer-events:none;}
+
+/* ── LEAD ROW ── */
+.lead-expirando td{border-left:3px solid var(--y);}
+.avatar-circle{width:32px;height:32px;border-radius:50%;background:var(--p3);color:var(--p);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:11px 18px;border-radius:var(--ra2);font-size:13px;font-weight:500;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(10px);pointer-events:none;box-shadow:var(--sh);max-width:360px;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast.ok{background:var(--g2);border:1px solid var(--g);color:var(--g);}
+#toast.err{background:var(--r2);border:1px solid var(--r);color:var(--r);}
+#toast.info{background:var(--p3);border:1px solid var(--p);color:var(--p);}
+
+/* ── MISC ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:15px;font-weight:600;}
+.section-sub{font-size:12px;color:var(--t3);margin-top:2px;}
+.divider{border:none;border-top:1px solid var(--b1);margin:16px 0;}
+code{font-family:monospace;background:var(--s3);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--c);}
+.inline-flex{display:inline-flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h1>AcessoBot</h1>
+      <p>Gestao de acessos e leads via Telegram</p>
+    </div>
+    <div class="login-box">
+      <h2>Entrar na plataforma</h2>
+      <div class="field"><label>Usuario</label><input id="lu" type="text" placeholder="admin" /></div>
+      <div class="field"><label>Senha</label><input id="ls" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()" /></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="login()">Entrar</button>
+      <p class="inp-err" id="le"></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="dot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div><span>AcessoBot</span><small>v2.0</small></div>
+    </div>
+    <nav style="flex:1">
+      <div class="nav-section">Visao Geral</div>
+      <button class="nav-item active" data-page="dashboard" onclick="nav('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <div class="nav-section">Bots</div>
+      <button class="nav-item" data-page="bots" onclick="nav('bots')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+        Meus Bots
+      </button>
+      <div class="nav-section">Leads</div>
+      <button class="nav-item" data-page="leads" onclick="nav('leads')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Todos os Leads
+      </button>
+      <div class="nav-section">Sistema</div>
+      <button class="nav-item" data-page="integracao" onclick="nav('integracao')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Integracao
+      </button>
+      <button class="nav-item" data-page="configuracoes" onclick="nav('configuracoes')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Configuracoes
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="topbar"><div><div class="topbar-title">Dashboard</div><div class="topbar-sub">Visao geral da operacao</div></div><button class="btn btn-ghost btn-sm" onclick="loadDash()">Atualizar</button></div>
+      <div class="page-body">
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="grid2" style="gap:20px;align-items:start">
+          <div>
+            <div class="section-header"><div class="section-title">Leads recentes</div></div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Lead</th><th>Plano</th><th>Status</th><th>Expira</th></tr></thead>
+              <tbody id="dash-leads"></tbody>
+            </table></div>
+          </div>
+          <div id="dash-bots-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BOTS ── -->
+    <div class="page" id="page-bots">
+      <div class="topbar"><div><div class="topbar-title">Meus Bots</div><div class="topbar-sub">Configure seus bots de acesso</div></div><button class="btn btn-primary btn-sm" onclick="openModalBot()">+ Novo Bot</button></div>
+      <div class="page-body" id="bots-lista"></div>
+    </div>
+
+    <!-- ── BOT DETALHE ── -->
+    <div class="page" id="page-bot-detalhe">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('bots')">← Voltar</button>
+          <div><div class="topbar-title" id="bdet-nome">Bot</div><div class="topbar-sub" id="bdet-sub"></div></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="tabs" style="margin-bottom:24px">
+          <button class="tab-btn active" onclick="tabBotDetalhe('funil')">Funil de Entrada</button>
+          <button class="tab-btn" onclick="tabBotDetalhe('mensagens')">Mensagens Agendadas</button>
+          <button class="tab-btn" onclick="tabBotDetalhe('links')">Links de Start</button>
+        </div>
+
+        <!-- FUNIL -->
+        <div class="tab-content active" id="tbc-funil">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Funil de Entrada</div>
+              <div class="section-sub">Cada passo e enviado quando o lead manda uma mensagem</div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-ghost btn-sm" onclick="openImportarFunil()">Importar JSON</button>
+              <button class="btn btn-primary btn-sm" onclick="addPasso()">+ Passo</button>
+            </div>
+          </div>
+          <div id="funil-passos"></div>
+          <button class="btn btn-primary" style="margin-top:12px" onclick="salvarFunil()">Salvar Funil</button>
+        </div>
+
+        <!-- MENSAGENS AGENDADAS -->
+        <div class="tab-content" id="tbc-mensagens">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Mensagens Agendadas</div>
+              <div class="section-sub">Enviadas automaticamente X dias apos o acesso ser concedido</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openModalMensagem()">+ Nova Mensagem</button>
+          </div>
+          <div class="info-box">
+            Nomes especiais: <code>acesso</code> = mensagem com o link de entrada, <code>remocao</code> = mensagem ao remover, <code>rmkt_remocao</code> = remove automaticamente no dia configurado.<br>
+            Variaveis: <code>{nome}</code> <code>{plano}</code> <code>{expiracao}</code> <code>{link}</code> <code>{telegram_id}</code>
+          </div>
+          <div id="msgs-lista"></div>
+        </div>
+
+        <!-- LINKS DE START -->
+        <div class="tab-content" id="tbc-links">
+          <div class="section-header"><div class="section-title">Links de Start</div></div>
+          <div id="links-panel"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── LEADS ── -->
+    <div class="page" id="page-leads">
+      <div class="topbar"><div><div class="topbar-title">Todos os Leads</div><div class="topbar-sub">Gerencie o acesso de cada lead</div></div></div>
+      <div class="page-body">
+        <div class="filter-bar">
+          <button class="filter-pill active" onclick="setFiltro('',this)">Todos</button>
+          <button class="filter-pill" onclick="setFiltro('ativo',this)">Ativos</button>
+          <button class="filter-pill" onclick="setFiltro('pendente',this)">Pendentes</button>
+          <button class="filter-pill" onclick="setFiltro('removido',this)">Removidos</button>
+          <div class="search-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="busca-lead" placeholder="Buscar..." oninput="loadLeads()" />
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Lead</th><th>Bot</th><th>Plano</th><th>Status</th><th>Acesso</th><th>Expira</th><th>Acoes</th></tr></thead>
+          <tbody id="leads-tb"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ── LEAD DETALHE ── -->
+    <div class="page" id="page-lead-detalhe">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-ghost btn-sm" onclick="nav('leads')">← Voltar</button>
+          <div><div class="topbar-title" id="ld-nome">Lead</div><div class="topbar-sub" id="ld-sub"></div></div>
+        </div>
+        <div class="actions" id="ld-acoes"></div>
+      </div>
+      <div class="page-body">
+        <div class="grid2" style="gap:20px;align-items:start">
+          <div>
+            <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:20px;margin-bottom:14px;">
+              <div class="section-title" style="margin-bottom:14px">Informacoes</div>
+              <div id="ld-info" style="display:grid;grid-template-columns:auto 1fr;gap:8px 20px;font-size:13px;"></div>
+            </div>
+            <div id="ld-link-card" style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:20px;display:none;">
+              <div class="section-title" style="margin-bottom:12px">Link de Acesso</div>
+              <div class="code-box"><span id="ld-link"></span><button class="copy-btn" onclick="copiar(document.getElementById('ld-link').textContent)">Copiar</button></div>
+            </div>
+          </div>
+          <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:20px;">
+            <div class="section-title" style="margin-bottom:14px">Historico</div>
+            <div id="ld-historico"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── INTEGRACAO ── -->
+    <div class="page" id="page-integracao">
+      <div class="topbar"><div><div class="topbar-title">Integracao</div><div class="topbar-sub">Webhook PerfectPay e logs</div></div><button class="btn btn-ghost btn-sm" onclick="loadWebhookLogs()">Atualizar logs</button></div>
+      <div class="page-body">
+        <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:24px;margin-bottom:20px;">
+          <div class="section-title" style="margin-bottom:6px">Webhook PerfectPay</div>
+          <p style="font-size:13px;color:var(--t3);margin-bottom:14px">Configure este URL na PerfectPay como webhook de pagamento aprovado.</p>
+          <div class="code-box" id="webhook-url-box"><span id="webhook-url-text"></span><button class="copy-btn" onclick="copiar(document.getElementById('webhook-url-text').textContent)">Copiar</button></div>
+          <hr class="divider"/>
+          <div class="section-title" style="margin-bottom:10px;font-size:13px">Como identificar o lead</div>
+          <div class="info-box">
+            Coloque o Telegram ID do lead no campo <code>utm_content</code> do link de pagamento:<br><br>
+            <code>https://pay.perfectpay.com.br/...?utm_content=TELEGRAM_ID&utm_source=p1m</code><br><br>
+            utm_source: <code>p1m</code> = mensal &nbsp; <code>p3m</code> = trimestral &nbsp; <code>p12m</code> = anual
+          </div>
+        </div>
+        <div class="section-header"><div class="section-title">Ultimos 50 eventos</div></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Data/Hora</th><th>Status</th><th>Payload</th></tr></thead>
+          <tbody id="webhook-tb"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ── CONFIGURACOES ── -->
+    <div class="page" id="page-configuracoes">
+      <div class="topbar"><div><div class="topbar-title">Configuracoes</div><div class="topbar-sub">Ajustes gerais do sistema</div></div></div>
+      <div class="page-body">
+        <div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:24px;max-width:500px;">
+          <div class="section-title" style="margin-bottom:16px">Acesso Temporario (bot free)</div>
+          <div class="field">
+            <label>Duracao em minutos</label>
+            <input type="number" id="cfg-temp" min="1" max="60" value="5" style="max-width:120px"/>
+            <small>Tempo que o lead fica no grupo apos o acesso temporario ser concedido.</small>
+          </div>
+          <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- MODAL: NOVO/EDITAR BOT -->
+<div class="overlay" id="mo-bot">
+  <div class="modal">
+    <div class="modal-header"><h3 id="mo-bot-title">Novo Bot</h3><button class="modal-close" onclick="closeModal('mo-bot')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="bot-id"/>
+      <div class="field"><label>Tipo</label>
+        <select id="bot-tipo"><option value="pago">Pago — Grupo VIP</option><option value="free">Free — Canal gratuito</option></select></div>
+      <div class="field"><label>Nome do Bot</label><input id="bot-nome" placeholder="Ex: Bot Acesso VIP"/></div>
+      <div class="field"><label>Token (BotFather)</label><input id="bot-token" placeholder="1234567890:ABC..."/></div>
+      <div class="field"><label>ID do Grupo/Canal</label><input id="bot-grupo" placeholder="-1001234567890"/>
+        <small>ID do grupo que o bot vai gerenciar. Use @userinfobot para descobrir.</small></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mo-bot')">Cancelar</button><button class="btn btn-primary" onclick="salvarBot()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: IMPORTAR FUNIL JSON -->
+<div class="overlay" id="mo-importar">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3>Importar Funil (JSON)</h3><button class="modal-close" onclick="closeModal('mo-importar')">&times;</button></div>
+    <div class="modal-body">
+      <div class="info-box">
+        Cole o JSON do funil abaixo. Formato:<br><br>
+        <code>{"passos":[{"texto":"oi {nome}!","delay":2,"gatilho":"inicio"},{"texto":"clique abaixo","botoes":[{"label":"Ver oferta","url":"https://..."},{"label":"Tenho interesse","passo":3}],"gatilho":"qualquer"}]}</code>
+        <br><br>Campos por passo: <code>texto</code> <code>mediaUrl</code> <code>mediaTipo</code> (foto/video) <code>delay</code> <code>gatilho</code> (inicio/qualquer/botao:LABEL) <code>botoes</code>
+      </div>
+      <div class="field"><label>JSON do Funil</label><textarea id="import-json" style="min-height:200px;font-family:monospace;font-size:12px" placeholder='{"passos": [...]}'></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mo-importar')">Cancelar</button><button class="btn btn-primary" onclick="confirmarImportar()">Importar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: MENSAGEM AGENDADA -->
+<div class="overlay" id="mo-mensagem">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="mo-msg-title">Nova Mensagem Agendada</h3><button class="modal-close" onclick="closeModal('mo-mensagem')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="msg-id"/>
+      <div class="grid2">
+        <div class="field"><label>Nome interno *</label><input id="msg-nome" placeholder="Ex: rmkt_dia7"/></div>
+        <div class="field"><label>Dia apos acesso *</label><input type="number" id="msg-dia" placeholder="Ex: 7" min="0"/></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Horario (Brasilia)</label><input type="time" id="msg-hora" value="10:00"/></div>
+        <div class="field"><label>Midia</label>
+          <select id="msg-tipo" onchange="toggleMsgUrl()"><option value="">Sem midia</option><option value="foto">Foto</option><option value="video">Video</option></select></div>
+      </div>
+      <div class="field" id="msg-url-wrap" style="display:none"><label>URL da Midia</label><input id="msg-url" placeholder="https://..."/></div>
+      <div class="field"><label>Texto / Legenda</label><textarea id="msg-texto" placeholder="{nome} {plano} {expiracao} {link} {telegram_id}"></textarea></div>
+      <div class="field">
+        <label>Botoes inline (opcional)</label>
+        <div class="btn-builder" id="msg-botoes-builder"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addBotaoMsgBuilder()">+ Adicionar Botao</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mo-mensagem')">Cancelar</button><button class="btn btn-primary" onclick="salvarMensagem()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: RENOVAR -->
+<div class="overlay" id="mo-renovar">
+  <div class="modal">
+    <div class="modal-header"><h3>Renovar Acesso</h3><button class="modal-close" onclick="closeModal('mo-renovar')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ren-id"/>
+      <div class="field"><label>Plano</label>
+        <select id="ren-plano"><option value="mensal">Mensal (30 dias)</option><option value="trimestral">Trimestral (90 dias)</option><option value="anual">Anual (365 dias)</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('mo-renovar')">Cancelar</button><button class="btn btn-primary" onclick="confirmarRenovar()">Renovar</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let bots=[], filtroLeads='', detBotId=null, detLeadId=null;
+let passosBot=[], msgBotoesBuilder=[];
+
+// ── UTILS ──────────────────────────────────────────────────────
+async function api(m,u,b){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);const r=await fetch(u,o);return r.json();}
+function toast(msg,tipo='ok'){const e=document.getElementById('toast');e.textContent=msg;e.className='show '+(tipo||'ok');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),4000);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+function copiar(txt){navigator.clipboard.writeText(txt).then(()=>toast('Copiado!'));}
+
+function planoBadge(p){const m={mensal:'badge-y',trimestral:'badge-p',anual:'badge-g'};return`<span class="badge ${m[p]||'badge-s3'}">${p}</span>`;}
+function statusBadge(s){const m={ativo:'badge-g',removido:'badge-r',expirado:'badge-y',pendente:'badge-p'};return`<span class="badge ${m[s]||'badge-s3'}"><span class="dot-badge"></span>${s}</span>`;}
+function fmtDate(d){return d?new Date(d).toLocaleDateString('pt-BR'):'—';}
+function fmtDateTime(d){return d?new Date(d).toLocaleString('pt-BR'):'—';}
+function initials(n){return(n||'?').split(' ').slice(0,2).map(x=>x[0]?.toUpperCase()||'').join('');}
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function login(){
+  const u=document.getElementById('lu').value.trim(),s=document.getElementById('ls').value;
+  const r=await api('POST','/api/login',{user:u,senha:s});
+  if(r.ok){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';init();}
+  else{const e=document.getElementById('le');e.textContent=r.erro||'Erro';e.style.display='block';}
+}
+async function logout(){await api('POST','/api/logout');location.reload();}
+async function checkAuth(){const r=await api('GET','/api/me');if(r.logado){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';init();}}
+
+async function init(){await loadBots();loadDash();}
+
+// ── NAV ──────────────────────────────────────────────────────
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
+  if(p==='dashboard')loadDash();
+  if(p==='bots')loadBots();
+  if(p==='leads')loadLeads();
+  if(p==='integracao'){loadWebhookLogs();document.getElementById('webhook-url-text').textContent=location.origin+'/webhook/perfectpay';}
+  if(p==='configuracoes')loadConfig();
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+async function loadDash(){
+  const d=await api('GET','/api/dashboard');
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card g"><div class="stat-lbl">Ativos</div><div class="stat-val">${d.ativos||0}</div></div>
+    <div class="stat-card p"><div class="stat-lbl">Total Leads</div><div class="stat-val">${d.total||0}</div></div>
+    <div class="stat-card y"><div class="stat-lbl">Expirando (5d)</div><div class="stat-val">${d.expirando||0}</div></div>
+    <div class="stat-card r"><div class="stat-lbl">Removidos</div><div class="stat-val">${d.removidos||0}</div></div>
+    <div class="stat-card c"><div class="stat-lbl">Webhooks OK</div><div class="stat-val">${d.webhooks||0}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Bots Online</div><div class="stat-val" style="color:var(--t1)">${d.botsOnline||0}</div></div>`;
+  const tb=document.getElementById('dash-leads');
+  tb.innerHTML=(d.leadsRecentes||[]).slice(0,8).map(l=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar-circle">${initials(l.nomeCompleto)}</div><div><div style="font-weight:500;font-size:13px">${l.nomeCompleto||l.username||l.telegramId}</div><div style="font-size:11px;color:var(--t3)">${l.telegramId}</div></div></div></td>
+    <td>${planoBadge(l.plano)}</td><td>${statusBadge(l.status)}</td>
+    <td style="font-size:12px;color:var(--t3)">${fmtDate(l.dataExpiracao)}</td></tr>`).join('') || '<tr class="empty-row"><td colspan="4">Nenhum lead ainda</td></tr>';
+  const ss=await api('GET','/api/status');
+  document.getElementById('dash-bots-panel').innerHTML=`<div class="section-title" style="margin-bottom:12px">Status dos Bots</div>`+
+    (bots.length?bots.map(b=>`<div style="background:var(--s1);border:1px solid var(--b1);border-radius:var(--ra2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="bot-avatar ${b.tipo}" style="width:34px;height:34px;font-size:14px">${b.tipo==='pago'?'🔐':'🆓'}</div>
+        <div><div style="font-weight:500;font-size:13px">${b.nome}</div><div style="font-size:11px;color:var(--t3)">${b._count?.leads||0} leads</div></div>
+      </div>
+      <span class="badge ${ss[b.id]?'badge-g':'badge-r'}"><span class="dot-badge"></span>${ss[b.id]?'Online':'Offline'}</span>
+    </div>`).join(''):'<div style="color:var(--t3);font-size:13px">Nenhum bot cadastrado.</div>');
+}
+
+// ── BOTS ──────────────────────────────────────────────────────
+async function loadBots(){
+  const [b,ss]=await Promise.all([api('GET','/api/bots'),api('GET','/api/status')]);
+  bots=b;
+  const el=document.getElementById('bots-lista');
+  if(!b.length){el.innerHTML='<div style="text-align:center;padding:60px;color:var(--t3)"><p style="font-size:15px;margin-bottom:8px">Nenhum bot configurado</p><p style="font-size:13px;margin-bottom:20px">Crie seu primeiro bot para comecar.</p><button class="btn btn-primary" onclick="openModalBot()">+ Criar Bot</button></div>';return;}
+  el.innerHTML=b.map(bot=>`
+    <div class="bot-card">
+      <div class="bot-card-header">
+        <div class="bot-info">
+          <div class="bot-avatar ${bot.tipo}">${bot.tipo==='pago'?'🔐':'🆓'}</div>
+          <div>
+            <div class="bot-name">${bot.nome}</div>
+            <div class="bot-meta">${bot.tipo==='pago'?'Bot de acesso pago':'Bot canal free'} · ID ${bot.grupoId}</div>
+          </div>
+          <span class="badge ${ss[bot.id]?'badge-g':'badge-r'}" style="margin-left:8px"><span class="dot-badge"></span>${ss[bot.id]?'Online':'Offline'}</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="abrirBotDetalhe(${bot.id})">Configurar Funil</button>
+          <button class="btn ${ss[bot.id]?'btn-danger':'btn-success'} btn-sm" onclick="toggleBot(${bot.id})">${ss[bot.id]?'Desligar':'Ligar'}</button>
+          <button class="btn btn-ghost btn-sm" onclick="openModalBot(${bot.id})">Editar</button>
+        </div>
+      </div>
+      <div class="bot-stats">
+        <div class="bot-stat">Leads: <strong>${bot._count?.leads||0}</strong></div>
+        <div class="bot-stat">Tipo: <strong>${bot.tipo}</strong></div>
+      </div>
+    </div>`).join('');
+}
+
+function openModalBot(id){
+  const bot=id?bots.find(b=>b.id===id):null;
+  document.getElementById('mo-bot-title').textContent=bot?'Editar Bot':'Novo Bot';
+  document.getElementById('bot-id').value=bot?.id||'';
+  document.getElementById('bot-tipo').value=bot?.tipo||'pago';
+  document.getElementById('bot-nome').value=bot?.nome||'';
+  document.getElementById('bot-token').value=bot?.token||'';
+  document.getElementById('bot-grupo').value=bot?.grupoId||'';
+  openModal('mo-bot');
+}
+
+async function salvarBot(){
+  const id=document.getElementById('bot-id').value;
+  const dados={tipo:document.getElementById('bot-tipo').value,nome:document.getElementById('bot-nome').value.trim(),token:document.getElementById('bot-token').value.trim(),grupoId:document.getElementById('bot-grupo').value.trim()};
+  if(!dados.nome||!dados.token||!dados.grupoId){toast('Preencha todos os campos','err');return;}
+  const r=id?await api('PUT','/api/bots/'+id,dados):await api('POST','/api/bots',dados);
+  if(r.erro){toast(r.erro,'err');return;}
+  toast('Bot salvo!','ok');closeModal('mo-bot');loadBots();
+}
+
+async function toggleBot(id){const r=await api('POST','/api/bots/'+id+'/toggle');toast(r.ativo?'Bot ligado!':'Bot desligado!','ok');loadBots();}
+
+// ── BOT DETALHE ───────────────────────────────────────────────
+async function abrirBotDetalhe(id){
+  detBotId=id;
+  const bot=bots.find(b=>b.id===id);
+  document.getElementById('bdet-nome').textContent=bot.nome;
+  document.getElementById('bdet-sub').textContent=bot.tipo==='pago'?'Bot de acesso pago':'Bot canal free';
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-bot-detalhe').classList.add('active');
+  tabBotDetalhe('funil');
+  await loadFunilBot();
+  await loadMsgsAgendadas();
+  renderLinksStart(bot);
+}
+
+function tabBotDetalhe(t){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['funil','mensagens','links'][i]===t));
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tbc-'+t).classList.add('active');
+}
+
+// ── FUNIL BUILDER ─────────────────────────────────────────────
+async function loadFunilBot(){
+  const f=await api('GET','/api/bots/'+detBotId+'/funil');
+  passosBot=(f.passos||[]).map(p=>({
+    texto:p.texto||'',mediaUrl:p.mediaUrl||'',mediaTipo:p.mediaTipo||'',
+    botoes:p.botoes?JSON.parse(p.botoes):[],delay:p.delay??2,gatilho:p.gatilho||'qualquer'
+  }));
+  renderPassosBot();
+}
+
+function renderPassosBot(){
+  const el=document.getElementById('funil-passos');
+  if(!passosBot.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);border:1px dashed var(--b2);border-radius:var(--ra2)">Nenhum passo. Clique em "+ Passo" ou importe um JSON.</div>';return;}
+  el.innerHTML=passosBot.map((p,i)=>`
+    <div class="funil-step">
+      <div class="funil-step-header" onclick="toggleStep(${i})">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <div class="step-num">${i+1}</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">${gatilhoLabel(p.gatilho)}</div>
+            <div class="step-preview">${p.texto||'(sem texto)'}</div>
+          </div>
+          ${p.botoes?.length?`<span class="badge badge-p">${p.botoes.length} botao(es)</span>`:''}
+          ${p.mediaUrl?`<span class="badge badge-c">${p.mediaTipo||'midia'}</span>`:''}
+        </div>
+        <div class="actions" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm" onclick="moverPasso(${i},-1)" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-ghost btn-sm" onclick="moverPasso(${i},1)" ${i===passosBot.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-danger btn-sm" onclick="remPasso(${i})">Remover</button>
+        </div>
+      </div>
+      <div class="funil-step-body" id="step-body-${i}" style="display:none">
+        <div class="grid2" style="margin-bottom:10px">
+          <div class="field" style="margin-bottom:0">
+            <label>Gatilho que dispara este passo</label>
+            <select onchange="passosBot[${i}].gatilho=this.value">
+              <option value="qualquer" ${p.gatilho==='qualquer'?'selected':''}>Qualquer mensagem</option>
+              <option value="inicio" ${p.gatilho==='inicio'?'selected':''}>Comando /start</option>
+              ${p.gatilho?.startsWith('botao:')?`<option value="${p.gatilho}" selected>Botao: ${p.gatilho.replace('botao:','')}</option>`:''}
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:0"><label>Delay (segundos)</label>
+            <input type="number" value="${p.delay}" min="0" max="15" onchange="passosBot[${i}].delay=parseInt(this.value)||0"/></div>
+        </div>
+        <div class="field">
+          <label>Texto <small style="text-transform:none;color:var(--t3)">{nome} {plano} {expiracao} {telegram_id}</small></label>
+          <textarea onchange="passosBot[${i}].texto=this.value">${p.texto}</textarea>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>URL Midia (opcional)</label><input type="text" value="${p.mediaUrl}" onchange="passosBot[${i}].mediaUrl=this.value" placeholder="https://..."/></div>
+          <div class="field"><label>Tipo de Midia</label>
+            <select onchange="passosBot[${i}].mediaTipo=this.value">
+              <option value="" ${!p.mediaTipo?'selected':''}>Sem midia</option>
+              <option value="foto" ${p.mediaTipo==='foto'?'selected':''}>Foto</option>
+              <option value="video" ${p.mediaTipo==='video'?'selected':''}>Video</option>
+            </select></div>
+        </div>
+        <div class="field">
+          <label>Botoes Inline</label>
+          <div class="btn-builder" id="step-btns-${i}">${renderBotoesBuilder(p.botoes,i)}</div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addBotaoPasso(${i})">+ Botao</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function gatilhoLabel(g){if(!g||g==='qualquer')return'Qualquer mensagem';if(g==='inicio')return'/start';if(g.startsWith('botao:'))return'Clique: '+g.replace('botao:','');return g;}
+
+function toggleStep(i){const el=document.getElementById('step-body-'+i);el.style.display=el.style.display==='none'?'block':'none';}
+
+function renderBotoesBuilder(botoes,stepIdx){
+  if(!botoes?.length)return'<div style="color:var(--t3);font-size:12px">Nenhum botao ainda.</div>';
+  return botoes.map((b,bi)=>`
+    <div class="btn-builder-item">
+      <input type="text" value="${b.label||''}" placeholder="Texto do botao" style="flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="passosBot[${stepIdx}].botoes[${bi}].label=this.value"/>
+      <div class="btn-type-toggle">
+        <button class="btn-type-opt ${b.url?'active':''}" onclick="setBotaoTipo(${stepIdx},${bi},'url')">Link</button>
+        <button class="btn-type-opt ${b.passo!==undefined?'active':''}" onclick="setBotaoTipo(${stepIdx},${bi},'passo')">Passo</button>
+      </div>
+      ${b.url!==undefined?`<input type="text" value="${b.url||''}" placeholder="https://..." style="flex:1.5;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="passosBot[${stepIdx}].botoes[${bi}].url=this.value"/>`:''}
+      ${b.passo!==undefined?`<input type="number" value="${b.passo}" placeholder="N do passo" style="width:80px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="passosBot[${stepIdx}].botoes[${bi}].passo=parseInt(this.value)"/>`:''}
+      <button class="btn btn-danger btn-icon" onclick="remBotaoPasso(${stepIdx},${bi})">×</button>
+    </div>`).join('');
+}
+
+function setBotaoTipo(si,bi,tipo){
+  const b=passosBot[si].botoes[bi];
+  if(tipo==='url'){delete b.passo;b.url=b.url||'';}
+  else{delete b.url;b.passo=b.passo??0;}
+  renderPassosBot();document.getElementById('step-body-'+si).style.display='block';
+}
+
+function addBotaoPasso(si){passosBot[si].botoes.push({label:'',url:''});renderPassosBot();document.getElementById('step-body-'+si).style.display='block';}
+function remBotaoPasso(si,bi){passosBot[si].botoes.splice(bi,1);renderPassosBot();document.getElementById('step-body-'+si).style.display='block';}
+function addPasso(){passosBot.push({texto:'',mediaUrl:'',mediaTipo:'',botoes:[],delay:2,gatilho:'qualquer'});renderPassosBot();}
+function remPasso(i){passosBot.splice(i,1);renderPassosBot();}
+function moverPasso(i,dir){const j=i+dir;if(j<0||j>=passosBot.length)return;[passosBot[i],passosBot[j]]=[passosBot[j],passosBot[i]];renderPassosBot();}
+
+async function salvarFunil(){
+  // Captura textareas atuais antes de salvar
+  document.querySelectorAll('[id^="step-body-"]').forEach((el,i)=>{
+    const ta=el.querySelector('textarea');
+    if(ta&&passosBot[i])passosBot[i].texto=ta.value;
+  });
+  const r=await api('POST','/api/bots/'+detBotId+'/funil',{passos:passosBot});
+  if(r.erro){toast(r.erro,'err');return;}
+  toast('Funil salvo com sucesso!','ok');
+}
+
+function openImportarFunil(){document.getElementById('import-json').value='';openModal('mo-importar');}
+
+async function confirmarImportar(){
+  const raw=document.getElementById('import-json').value.trim();
+  let json;
+  try{json=JSON.parse(raw);}catch{toast('JSON inválido','err');return;}
+  const r=await api('POST','/api/bots/'+detBotId+'/funil/importar',json);
+  if(r.erro){toast(r.erro,'err');return;}
+  toast(`Funil importado! ${r.passos} passo(s)`,'ok');closeModal('mo-importar');loadFunilBot();
+}
+
+// ── MSGS AGENDADAS ────────────────────────────────────────────
+async function loadMsgsAgendadas(){
+  const msgs=await api('GET','/api/bots/'+detBotId+'/mensagens');
+  const el=document.getElementById('msgs-lista');
+  if(!msgs.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);border:1px dashed var(--b2);border-radius:var(--ra2)">Nenhuma mensagem configurada.</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Dia</th><th>Nome</th><th>Horario</th><th>Midia</th><th>Status</th><th>Acoes</th></tr></thead><tbody>`+
+    msgs.map(m=>`<tr>
+      <td><strong style="color:var(--p)">Dia ${m.diaEnvio}</strong></td>
+      <td style="font-weight:500">${m.nome}</td>
+      <td style="color:var(--t3)">${m.horario}</td>
+      <td>${m.mediaTipo?`<span class="badge badge-c">${m.mediaTipo}</span>`:'<span style="color:var(--t3);font-size:12px">—</span>'}</td>
+      <td><span class="badge ${m.ativa?'badge-g':'badge-r'}">${m.ativa?'Ativa':'Pausada'}</span></td>
+      <td><div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="editarMensagem(${m.id})">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deletarMensagem(${m.id})">Excluir</button>
+      </div></td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+function openModalMensagem(m){
+  document.getElementById('mo-msg-title').textContent=m?'Editar Mensagem':'Nova Mensagem Agendada';
+  document.getElementById('msg-id').value=m?.id||'';
+  document.getElementById('msg-nome').value=m?.nome||'';
+  document.getElementById('msg-dia').value=m?.diaEnvio??'';
+  document.getElementById('msg-hora').value=m?.horario||'10:00';
+  document.getElementById('msg-tipo').value=m?.mediaTipo||'';
+  document.getElementById('msg-url').value=m?.mediaUrl||'';
+  document.getElementById('msg-texto').value=m?.texto||'';
+  document.getElementById('msg-url-wrap').style.display=m?.mediaTipo?'block':'none';
+  // Botoes
+  msgBotoesBuilder=m?.botoes?JSON.parse(m.botoes):[];
+  renderMsgBotoesBuilder();
+  openModal('mo-mensagem');
+}
+
+function toggleMsgUrl(){document.getElementById('msg-url-wrap').style.display=document.getElementById('msg-tipo').value?'block':'none';}
+
+function renderMsgBotoesBuilder(){
+  const el=document.getElementById('msg-botoes-builder');
+  if(!msgBotoesBuilder.length){el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum botao ainda.</div>';return;}
+  el.innerHTML=msgBotoesBuilder.map((b,i)=>`
+    <div class="btn-builder-item">
+      <input type="text" value="${b.label||''}" placeholder="Texto" style="flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="msgBotoesBuilder[${i}].label=this.value"/>
+      <div class="btn-type-toggle">
+        <button class="btn-type-opt ${b.url!==undefined?'active':''}" onclick="setMsgBotaoTipo(${i},'url')">Link</button>
+        <button class="btn-type-opt ${b.passo!==undefined?'active':''}" onclick="setMsgBotaoTipo(${i},'passo')">Passo</button>
+      </div>
+      ${b.url!==undefined?`<input type="text" value="${b.url||''}" placeholder="https://..." style="flex:1.5;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="msgBotoesBuilder[${i}].url=this.value"/>`:''}
+      ${b.passo!==undefined?`<input type="number" value="${b.passo}" placeholder="Passo" style="width:80px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra);padding:7px 10px;color:var(--t1);font-size:12px;outline:none" onchange="msgBotoesBuilder[${i}].passo=parseInt(this.value)"/>`:''}
+      <button class="btn btn-danger btn-icon" onclick="msgBotoesBuilder.splice(${i},1);renderMsgBotoesBuilder()">×</button>
+    </div>`).join('');
+}
+
+function setMsgBotaoTipo(i,tipo){
+  const b=msgBotoesBuilder[i];
+  if(tipo==='url'){delete b.passo;b.url=b.url||'';}
+  else{delete b.url;b.passo=b.passo??0;}
+  renderMsgBotoesBuilder();
+}
+function addBotaoMsgBuilder(){msgBotoesBuilder.push({label:'',url:''});renderMsgBotoesBuilder();}
+
+async function editarMensagem(id){
+  const msgs=await api('GET','/api/bots/'+detBotId+'/mensagens');
+  const m=msgs.find(x=>x.id===id);
+  if(m)openModalMensagem(m);
+}
+
+async function salvarMensagem(){
+  const id=document.getElementById('msg-id').value;
+  const nome=document.getElementById('msg-nome').value.trim();
+  const diaEnvio=document.getElementById('msg-dia').value;
+  if(!nome||diaEnvio===''){toast('Nome e dia sao obrigatorios','err');return;}
+  const dados={nome,diaEnvio:parseInt(diaEnvio),horario:document.getElementById('msg-hora').value,
+    mediaTipo:document.getElementById('msg-tipo').value||null,
+    mediaUrl:document.getElementById('msg-url').value.trim()||null,
+    texto:document.getElementById('msg-texto').value.trim()||null,
+    botoes:msgBotoesBuilder.length?msgBotoesBuilder:null};
+  const r=id?await api('PUT','/api/mensagens/'+id,dados):await api('POST','/api/bots/'+detBotId+'/mensagens',dados);
+  if(r.erro){toast(r.erro,'err');return;}
+  toast('Salvo!','ok');closeModal('mo-mensagem');loadMsgsAgendadas();
+}
+
+async function deletarMensagem(id){
+  if(!confirm('Excluir esta mensagem?'))return;
+  await api('DELETE','/api/mensagens/'+id);
+  toast('Excluido','ok');loadMsgsAgendadas();
+}
+
+// ── LINKS DE START ────────────────────────────────────────────
+function renderLinksStart(bot){
+  const el=document.getElementById('links-panel');
+  if(bot.tipo==='free'){el.innerHTML=`<div class="info-box">O bot free nao usa parametros de plano. O lead so manda /start e entra no funil.</div><div class="code-box">https://t.me/${bot.token.split(':')[0]}bot?start=<span style="color:var(--y)">TELEGRAM_ID_LEAD</span></div>`;return;}
+  el.innerHTML=`
+    <div class="info-box">Substitua <code>TELEGRAM_ID_LEAD</code> pelo ID Telegram do lead em cada link. Este ID identifica o lead no webhook da PerfectPay.</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      ${[['Mensal (30 dias)','p1m','badge-y'],['Trimestral (90 dias)','p3m','badge-p'],['Anual (365 dias)','p12m','badge-g']].map(([label,param,badge])=>`
+      <div style="background:var(--s2);border:1px solid var(--b1);border-radius:var(--ra2);padding:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span class="badge ${badge}">${label}</span>
+        </div>
+        <div class="code-box">https://t.me/${bot.token.split(':')[0]}bot?start=<span style="color:var(--y)">${param}</span>_<span style="color:var(--c)">TELEGRAM_ID_LEAD</span><button class="copy-btn" onclick="copiar('https://t.me/${bot.token.split(':')[0]}bot?start=${param}_ID')">Copiar</button></div>
+      </div>`).join('')}
+    </div>`;
+}
+
+// ── LEADS ─────────────────────────────────────────────────────
+async function setFiltro(s,btn){filtroLeads=s;document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');loadLeads();}
+
+async function loadLeads(){
+  const busca=document.getElementById('busca-lead')?.value||'';
+  let url='/api/leads?';
+  if(filtroLeads)url+='status='+filtroLeads+'&';
+  if(busca)url+='busca='+encodeURIComponent(busca)+'&';
+  const leads=await api('GET',url);
+  const tb=document.getElementById('leads-tb');
+  if(!leads.length){tb.innerHTML='<tr class="empty-row"><td colspan="7">Nenhum lead encontrado</td></tr>';return;}
+  tb.innerHTML=leads.map(l=>{
+    const exp=l.dataExpiracao?new Date(l.dataExpiracao):null;
+    const expirando=exp&&(exp-Date.now())<5*86400000&&l.status==='ativo';
+    return`<tr class="${expirando?'lead-expirando':''}">
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="avatar-circle">${initials(l.nomeCompleto)}</div>
+        <div><div style="font-weight:500">${l.nomeCompleto||l.username||'—'}</div><div style="font-size:11px;color:var(--t3)">@${l.username||'—'} · ${l.telegramId}</div></div>
+      </div></td>
+      <td style="font-size:12px;color:var(--t3)">${l.bot?.nome||'—'}</td>
+      <td>${planoBadge(l.plano)}</td>
+      <td>${statusBadge(l.status)}</td>
+      <td>${l.acessoConcedido?'<span class="badge badge-g">Sim</span>':'<span class="badge badge-r">Nao</span>'}</td>
+      <td style="font-size:12px;color:${expirando?'var(--y)':'var(--t3)'}">${fmtDate(l.dataExpiracao)}</td>
+      <td><div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="verLead(${l.id})">Ver</button>
+        ${!l.acessoConcedido?`<button class="btn btn-success btn-sm" onclick="concederAcesso(${l.id})">Dar Acesso</button>`:''}
+        ${l.status!=='removido'?`<button class="btn btn-danger btn-sm" onclick="removerLead(${l.id})">Remover</button>`:
+          `<button class="btn btn-warn btn-sm" onclick="abrirRenovar(${l.id})">Renovar</button>`}
+      </div></td></tr>`;
+  }).join('');
+}
+
+async function verLead(id){
+  detLeadId=id;
+  const l=await api('GET','/api/leads/'+id);
+  document.getElementById('ld-nome').textContent=l.nomeCompleto||l.username||l.telegramId;
+  document.getElementById('ld-sub').textContent=(l.bot?.tipo==='pago'?'Bot Pago':'Bot Free')+' · ID '+l.telegramId;
+  document.getElementById('ld-info').innerHTML=[
+    ['Status',statusBadge(l.status)],['Plano',planoBadge(l.plano)],
+    ['Acesso concedido',l.acessoConcedido?'<span class="badge badge-g">Sim</span>':'<span class="badge badge-r">Nao</span>'],
+    ['Data acesso',fmtDate(l.dataAcesso)],['Expiracao',fmtDate(l.dataExpiracao)],
+    ['Renovado em',fmtDate(l.renovadoEm)],['Telegram ID',`<code>${l.telegramId}</code>`],
+    ['Username',l.username?'@'+l.username:'—'],
+    ['Msgs enviadas',l._count?.mensagensEnviadas||0],
+  ].map(([k,v])=>`<span style="color:var(--t3)">${k}</span><span>${v}</span>`).join('');
+  if(l.linkAcesso){document.getElementById('ld-link-card').style.display='block';document.getElementById('ld-link').textContent=l.linkAcesso;}
+  else document.getElementById('ld-link-card').style.display='none';
+  document.getElementById('ld-acoes').innerHTML=`
+    ${!l.acessoConcedido?`<button class="btn btn-success btn-sm" onclick="concederAcesso(${l.id})">Dar Acesso</button>`:''}
+    ${l.bot?.tipo==='free'?`<button class="btn btn-primary btn-sm" onclick="acessoTemp(${l.id})">Acesso Temporario</button>`:''}
+    <button class="btn btn-warn btn-sm" onclick="abrirRenovar(${l.id})">Renovar</button>
+    ${l.status!=='removido'?`<button class="btn btn-danger btn-sm" onclick="removerLead(${l.id})">Remover</button>`:''}`;
+  const msgs=l.mensagensEnviadas||[];
+  document.getElementById('ld-historico').innerHTML=msgs.length?
+    msgs.map(m=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--b1);font-size:12px"><span style="font-weight:500;color:var(--t1)">${m.tipo}</span><span style="color:var(--t3)">${fmtDateTime(m.enviadoEm)}</span></div>`).join('')
+    :'<div style="color:var(--t3);font-size:13px">Nenhuma mensagem enviada ainda.</div>';
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-lead-detalhe').classList.add('active');
+}
+
+async function concederAcesso(id){if(!confirm('Gerar link de acesso e enviar para o lead?'))return;const r=await api('POST','/api/leads/'+id+'/conceder-acesso');r.ok?toast('Acesso concedido!','ok'):toast(r.erro||'Erro','err');loadLeads();}
+async function acessoTemp(id){const r=await api('POST','/api/leads/'+id+'/acesso-temporario');r.ok?toast('Acesso temporario enviado!','ok'):toast(r.erro||'Erro','err');}
+async function removerLead(id){if(!confirm('Remover este lead do grupo?'))return;const r=await api('POST','/api/leads/'+id+'/remover');r.ok?toast('Removido!','ok'):toast(r.erro||'Erro','err');loadLeads();}
+function abrirRenovar(id){document.getElementById('ren-id').value=id;openModal('mo-renovar');}
+async function confirmarRenovar(){const id=document.getElementById('ren-id').value;const plano=document.getElementById('ren-plano').value;const r=await api('POST','/api/leads/'+id+'/renovar',{plano});r.ok?(toast('Renovado!','ok'),closeModal('mo-renovar'),loadLeads()):toast('Erro ao renovar','err');}
+
+// ── CONFIG ────────────────────────────────────────────────────
+async function loadConfig(){const c=await api('GET','/api/config');document.getElementById('cfg-temp').value=c.acesso_temp_minutos||5;}
+async function saveConfig(){await api('PUT','/api/config',{acesso_temp_minutos:document.getElementById('cfg-temp').value});toast('Configuracoes salvas!','ok');}
+
+// ── WEBHOOK LOGS ──────────────────────────────────────────────
+async function loadWebhookLogs(){
+  const logs=await api('GET','/api/webhook-logs');
+  const tb=document.getElementById('webhook-tb');
+  if(!logs.length){tb.innerHTML='<tr class="empty-row"><td colspan="3">Nenhum evento ainda</td></tr>';return;}
+  tb.innerHTML=logs.map(l=>`<tr>
+    <td style="font-size:12px;color:var(--t3);white-space:nowrap">${fmtDateTime(l.criadoEm)}</td>
+    <td><span class="badge ${l.status==='processado'?'badge-g':l.status==='ignorado'||l.status.startsWith('ignorado')?'badge-y':'badge-r'}">${l.status}</span></td>
+    <td style="font-size:11px;color:var(--t3);max-width:500px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.payload.substring(0,150)}</td>
+  </tr>`).join('');
+}
+
+checkAuth();
+</script>
+</body>
+</html>

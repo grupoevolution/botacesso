@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./database.db"
+}
+
+model Config {
+  id    Int    @id @default(autoincrement())
+  chave String @unique
+  valor String
+}
+
+model Admin {
+  id    Int    @id @default(autoincrement())
+  user  String @unique
+  senha String
+}
+
+model BotAcesso {
+  id         Int      @id @default(autoincrement())
+  tipo       String   // "pago" | "free"
+  nome       String
+  token      String   @unique
+  grupoId    String
+  ativo      Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+  leads      Lead[]
+  funil      FunilAcesso?
+  mensagensAgendadas MensagemAgendada[]
+}
+
+model FunilAcesso {
+  id     Int           @id @default(autoincrement())
+  botId  Int           @unique
+  bot    BotAcesso     @relation(fields: [botId], references: [id], onDelete: Cascade)
+  passos PassoAcesso[]
+}
+
+// Cada passo pode ter texto, midia E botoes (JSON)
+// botoes formato: [{"label":"Ver oferta","url":"https://..."}, {"label":"Sim quero","passo":3}]
+model PassoAcesso {
+  id        Int         @id @default(autoincrement())
+  funilId   Int
+  funil     FunilAcesso @relation(fields: [funilId], references: [id], onDelete: Cascade)
+  ordem     Int
+  texto     String?
+  mediaUrl  String?
+  mediaTipo String?     // "foto" | "video"
+  botoes    String?     // JSON array de botoes
+  delay     Int         @default(2)
+  // Gatilho: o que dispara este passo
+  // "qualquer" = qualquer mensagem | "botao:LABEL" = clique em botao especifico | "inicio" = /start
+  gatilho   String      @default("qualquer")
+}
+
+model MensagemAgendada {
+  id        Int       @id @default(autoincrement())
+  botId     Int
+  bot       BotAcesso @relation(fields: [botId], references: [id], onDelete: Cascade)
+  nome      String
+  diaEnvio  Int
+  horario   String    @default("10:00")
+  texto     String?
+  mediaUrl  String?
+  mediaTipo String?
+  botoes    String?   // JSON array de botoes
+  ativa     Boolean   @default(true)
+  ordem     Int       @default(0)
+}
+
+model Lead {
+  id               Int       @id @default(autoincrement())
+  botId            Int
+  bot              BotAcesso @relation(fields: [botId], references: [id])
+  telegramId       String
+  username         String?
+  nomeCompleto     String?
+  plano            String    @default("mensal")
+  status           String    @default("pendente") // "pendente"|"ativo"|"expirado"|"removido"
+  passoFunil       Int       @default(0)
+  aguardandoResposta Boolean @default(false)
+  acessoConcedido  Boolean   @default(false)
+  linkAcesso       String?
+  dataAcesso       DateTime?
+  dataExpiracao    DateTime?
+  renovadoEm      DateTime?
+  criadoEm        DateTime  @default(now())
+  mensagensEnviadas MensagemEnviada[]
+
+  @@unique([botId, telegramId])
+}
+
+model MensagemEnviada {
+  id                 Int      @id @default(autoincrement())
+  leadId             Int
+  lead               Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  mensagemAgendadaId Int?
+  tipo               String
+  enviadoEm         DateTime @default(now())
+}
+
+model WebhookLog {
+  id        Int      @id @default(autoincrement())
+  payload   String
+  status    String
+  criadoEm DateTime @default(now())
+}
