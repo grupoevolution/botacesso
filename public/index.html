@@ -526,7 +526,15 @@ let bots=[], filtroLeads='', detBotId=null, detLeadId=null;
 let passosBot=[], msgBotoesBuilder=[];
 
 // ── UTILS ──────────────────────────────────────────────────────
-async function api(m,u,b){const o={method:m,headers:{'Content-Type':'application/json'}};if(b)o.body=JSON.stringify(b);const r=await fetch(u,o);return r.json();}
+async function api(m,u,b){
+  const o={method:m,headers:{'Content-Type':'application/json'}};
+  if(b)o.body=JSON.stringify(b);
+  try{
+    const r=await fetch(u,o);
+    const txt=await r.text();
+    try{return JSON.parse(txt);}catch{return {erro:'Resposta invalida do servidor'};}
+  }catch(e){return {erro:'Erro de conexao: '+e.message};}
+}
 function toast(msg,tipo='ok'){const e=document.getElementById('toast');e.textContent=msg;e.className='show '+(tipo||'ok');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),4000);}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
@@ -542,9 +550,15 @@ function initials(n){return(n||'?').split(' ').slice(0,2).map(x=>x[0]?.toUpperCa
 // ── AUTH ──────────────────────────────────────────────────────
 async function login(){
   const u=document.getElementById('lu').value.trim(),s=document.getElementById('ls').value;
+  const le=document.getElementById('le');
+  le.style.display='none';
+  if(!u||!s){le.textContent='Preencha usuario e senha';le.style.display='block';return;}
+  const btn=document.querySelector('#login-screen .btn-primary');
+  btn.textContent='Entrando...';btn.disabled=true;
   const r=await api('POST','/api/login',{user:u,senha:s});
+  btn.textContent='Entrar';btn.disabled=false;
   if(r.ok){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';init();}
-  else{const e=document.getElementById('le');e.textContent=r.erro||'Erro';e.style.display='block';}
+  else{le.textContent=r.erro||'Erro ao fazer login';le.style.display='block';}
 }
 async function logout(){await api('POST','/api/logout');location.reload();}
 async function checkAuth(){const r=await api('GET','/api/me');if(r.logado){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';init();}}
